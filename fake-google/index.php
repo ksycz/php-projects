@@ -12,7 +12,7 @@
     <main class="wrapper index-page">
       <section class="main-container">
         <div class="logo-container">
-          <img src="assets/img/google-doodle.png" alt="Doodle logo">
+          <img src="assets/img/google-doodle.png" title="Fake google logo" alt="Fake google logo">
         </div>
 
         <div class="search-container">
