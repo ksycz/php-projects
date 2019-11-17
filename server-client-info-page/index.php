@@ -1,3 +1,4 @@
+<!-- Created based on Traversy media course: https://www.youtube.com/watch?v=oJbfyzaA2QA&list=PLillGF-Rfqbap2IB6ZS4BBBcYPagAjpjn -->
 <?php include 'server-info.php'; ?>
 <!DOCTYPE html>
 <html>
