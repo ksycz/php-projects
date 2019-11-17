@@ -209,3 +209,35 @@ header {
   color: #0386bc;
   font-weight: normal;
 }
+
+.main-results .image-results {
+  margin: 20px;
+}
+
+.image-results .grid-item img {
+  max-width: 200px;
+  min-width: 50px;
+}
+
+.grid-item {
+  position: relative;
+}
+
+.grid-item .image-details {
+  visibility: hidden;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  overflow: hidden;
+  background-color: gray;
+  font-size: 12px;
+  color: white;
+  padding: 3px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.grid-item:hover .image-details {
+  visibility: visible;
+}

@@ -1,78 +1,76 @@
 <?php
-class ImageResultsProvider {
 
-	private $con;
+  class ImageResultsProvider {
 
-	public function __construct($con) {
-		$this->con = $con;
-	}
+    private $connection;
 
-	public function getNumResults($term) {
+    public function __construct($connection) {
+      $this->connection = $connection;
+    }
 
-		$query = $this->con->prepare("SELECT COUNT(*) as total
-										 FROM images
-										 WHERE (title LIKE :term
-										 OR alt LIKE :term)
-										 AND broken=0");
+    public function getNumberOfResults($term) {
+      $query = $this->connection->prepare("SELECT COUNT(*) as total FROM images WHERE (title LIKE :term OR alt LIKE :term) AND broken=0");
 
-		$searchTerm = "%". $term . "%";
-		$query->bindParam(":term", $searchTerm);
-		$query->execute();
+      // we need it because we want to find not only the exact term, it can be visible in some text
+      $searchTerm = "%" . $term . "%";
+      $query->bindParam(":term", $searchTerm);
 
-		$row = $query->fetch(PDO::FETCH_ASSOC);
-		return $row["total"];
+      $query->execute();
+      
+      // store results in the associative array
+      $row = $query->fetch(PDO::FETCH_ASSOC);
 
-	}
-
-	public function getResultsHtml($page, $pageSize, $term) {
-
-		$fromLimit = ($page - 1) * $pageSize;
-
-		$query = $this->con->prepare("SELECT * 
-										 FROM websites WHERE title LIKE :term 
-										 OR url LIKE :term 
-										 OR keywords LIKE :term 
-										 OR description LIKE :term
-										 ORDER BY clicks DESC
-										 LIMIT :fromLimit, :pageSize");
-
-		$searchTerm = "%". $term . "%";
-		$query->bindParam(":term", $searchTerm);
-		$query->bindParam(":fromLimit", $fromLimit, PDO::PARAM_INT);
-		$query->bindParam(":pageSize", $pageSize, PDO::PARAM_INT);
-		$query->execute();
+      return $row["total"];
+    }
 
 
-		$resultsHtml = "<div class='website-results'>";
 
+    // pageSize is the number of results to show
+    public function getResultsHTML($page, $pageSize, $term) {
 
-		while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-			$id = $row["id"];
-			$url = $row["url"];
-			$title = $row["title"];
-			$description = $row["description"];
+      $fromLimit = ($page - 1) * $pageSize;
 
-			$title = $this->trimField($title, 55);
-			$description = $this->trimField($description, 230);
-			
-			$resultsHtml .= "<div class='results-container'>
-                          <h3 class='title'>
-                            <a class='result' href='$url' data-linkId='$id'>$title</a>
-                          </h3>
-                          <span class='url'>$url</span>
-                          <span class='description'>$description</span>
+      // we need order to show the most popular results first
+      $query = $this->connection->prepare("SELECT * FROM images WHERE (title LIKE :term OR alt LIKE :term) AND broken=0 ORDER BY clicks DESC LIMIT :fromLimit, :pageSize");
+
+      // we need it because we want to find not only the exact term, it can be visible in some text
+      $searchTerm = "%" . $term . "%";
+      $query->bindParam(":term", $searchTerm);
+      $query->bindParam(":fromLimit", $fromLimit, PDO::PARAM_INT);
+      $query->bindParam(":pageSize", $pageSize, PDO::PARAM_INT);
+      $query->execute();
+
+      $resultsHtml = "<div class='image-results'>";
+
+      while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+        $id = $row["id"];
+        $websiteUrl = $row["websiteUrl"];
+        $imageUrl = $row["imageUrl"];
+        $alt = $row["alt"];
+        $title = $row["title"];
+        
+
+        if($title) {
+          $displayText = $title;
+        }
+        else if($alt) {
+          $displayText = $alt;
+        }
+        else {
+          $displayText = $imageUrl;
+        }
+
+        $resultsHtml .= "<div class='grid-item'>
+                          <a href='$imageUrl'>
+                            <img src='$imageUrl'>
+                            <span class='image-details'>$displayText</span>
+                          </a>
                         </div>";
 
-		}
+      }
 
-
-		$resultsHtml .= "</div>";
-
-		return $resultsHtml;
-	}
-
-
-
-
-}
+      $resultsHtml .= "</div>";
+      return $resultsHtml;
+    }
+  };
 ?>
